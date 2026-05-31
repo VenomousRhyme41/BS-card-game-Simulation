@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #f5f0e8;
+  --ink: #1a1510;
+  --gold: #c9a84c;
+  --red: #a8312a;
+  --muted: #8a8070;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.bg-suits {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.bg-suit {
+  position: absolute;
+  font-size: 180px;
+  opacity: 0.04;
+  font-family: serif;
+  line-height: 1;
+  animation: drift 20s ease-in-out infinite;
+}
+
+.bg-suit:nth-child(1) { top: -40px; left: -20px; animation-delay: 0s; color: var(--ink); }
+.bg-suit:nth-child(2) { top: -20px; right: -20px; animation-delay: -5s; color: var(--red); font-size: 220px; }
+.bg-suit:nth-child(3) { bottom: -30px; left: 10%; animation-delay: -10s; color: var(--red); font-size: 200px; }
+.bg-suit:nth-child(4) { bottom: -20px; right: 5%; animation-delay: -15s; color: var(--ink); font-size: 160px; }
+.bg-suit:nth-child(5) { top: 40%; left: -30px; animation-delay: -7s; color: var(--ink); font-size: 130px; }
+.bg-suit:nth-child(6) { top: 35%; right: -20px; animation-delay: -13s; color: var(--red); font-size: 150px; }
+
+@keyframes drift {
+  0%, 100% { transform: translateY(0px) rotate(-5deg); }
+  50% { transform: translateY(-18px) rotate(3deg); }
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 56px;
+  padding: 40px 24px;
+}
+
+.header {
+  text-align: center;
+  animation: fadeUp 0.7s ease both;
+}
+
+.eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(52px, 8vw, 88px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.title .suit-red {
+  color: var(--red);
+}
+
+.subtitle {
+  margin-top: 16px;
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+.divider-line {
+  width: 40px;
+  height: 1.5px;
+  background: var(--gold);
+  margin: 0 auto 0;
+  animation: fadeUp 0.7s 0.1s ease both;
+}
+
+.cards-row {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+  animation: fadeUp 0.7s 0.2s ease both;
+}
+
+@media (max-width: 600px) {
+  .cards-row { flex-direction: column; align-items: center; }
+}
+
+.game-card {
+  width: 220px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  border: 1.5px solid rgba(0,0,0,0.07);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 16px;
+}
+
+.game-card.classic::before {
+  background: linear-gradient(135deg, rgba(201,168,76,0.08), transparent);
+}
+
+.game-card.bs::before {
+  background: linear-gradient(135deg, rgba(168,49,42,0.08), transparent);
+}
+
+.game-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+
+.game-card:hover::before { opacity: 1; }
+
+.game-card.classic:hover { border-color: var(--gold); }
+.game-card.bs:hover { border-color: var(--red); }
+
+.game-card:active { transform: translateY(-2px) scale(0.99); }
+
+.card-icon {
+  font-size: 48px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1));
+  transition: transform 0.2s;
+}
+
+.game-card:hover .card-icon { transform: scale(1.12) rotate(-4deg); }
+
+.card-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.game-card.classic .card-label { color: #1a1510; }
+.game-card.bs .card-label { color: var(--red); }
+
+.card-desc {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.card-badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-top: 4px;
+}
+
+.game-card.classic .card-badge {
+  background: rgba(201,168,76,0.12);
+  color: #9a7820;
+}
+
+.game-card.bs .card-badge {
+  background: rgba(168,49,42,0.1);
+  color: var(--red);
+}
+
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  width: 1px;
+  height: 48px;
+  background: rgba(0,0,0,0.1);
+}
+
+@media (max-width: 600px) {
+  .or-divider { flex-direction: row; }
+  .or-divider::before,
+  .or-divider::after {
+    width: 48px;
+    height: 1px;
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.footer-note {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.6;
+  letter-spacing: 0.04em;
+  animation: fadeUp 0.7s 0.35s ease both;
+}
+</style>
+</head>
+<body>
+
+<div class="bg-suits">
+  <span class="bg-suit">♠</span>
+  <span class="bg-suit">♥</span>
+  <span class="bg-suit">♦</span>
+  <span class="bg-suit">♣</span>
+  <span class="bg-suit">♠</span>
+  <span class="bg-suit">♥</span>
+</div>
+
+<div class="container">
+  <div class="header">
+    <div class="eyebrow">Choose your game</div>
+    <div class="title">Card<br><span class="suit-red">Game</span></div>
+    <div class="subtitle">Pick a mode and start playing</div>
+  </div>
+
+  <div class="divider-line"></div>
+
+  <div class="cards-row">
+    <a href="numbers.html" class="game-card classic">
+      <div class="card-icon">🂡</div>
+      <div class="card-label">Classic</div>
+      <div class="card-desc">Play cards by rank in order. No tricks, no lies — just the game.</div>
+      <div class="card-badge">No BS</div>
+    </a>
+
+    <div class="or-divider">or</div>
+
+    <a href="bs.html" class="game-card bs">
+      <div class="card-icon">🃏</div>
+      <div class="card-label">BS Mode</div>
+      <div class="card-desc">Bluff your way to victory. Call out liars or get caught yourself.</div>
+      <div class="card-badge">Bluffing On</div>
+    </a>
+  </div>
+
+  <div class="footer-note">52 cards · up to 10 players · simulation</div>
+</div>
+
+</body>
+</html>
