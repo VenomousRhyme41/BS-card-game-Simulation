@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BS Card Game</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f4f3ee;
+  color: #1a1a1a;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: #fff;
+  border-right: 0.5px solid rgba(0,0,0,0.12);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+#sidebar h2 {
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #333;
+}
+
+.setting-label span {
+  font-weight: 500;
+  font-size: 14px;
+  color: #1a1a1a;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #534AB7;
+  cursor: pointer;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+button {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 0.5px solid rgba(0,0,0,0.2);
+  background: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, border-color 0.15s;
+  color: #1a1a1a;
+}
+
+button:hover { background: #f4f3ee; }
+button:active { transform: scale(0.98); }
+
+#btn-start { background: #534AB7; color: #fff; border-color: #534AB7; }
+#btn-start:hover { background: #3C3489; }
+
+#btn-reset { background: #fff; color: #A32D2D; border-color: rgba(163,45,45,0.3); }
+#btn-reset:hover { background: #FCEBEB; }
+#btn-reset.confirm-reset { background: #A32D2D; color: #fff; border-color: #A32D2D; }
+#btn-reset.confirm-reset:hover { background: #8a2323; }
+
+#btn-auto-loop { background: #fff; color: #1D9E75; border-color: rgba(29,158,117,0.3); }
+#btn-auto-loop:hover { background: #edfaf5; }
+#btn-auto-loop.active { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+#btn-auto-loop.active:hover { background: #178a65; }
+
+.stop-round-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stop-round-row input[type="number"] {
+  width: 60px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 0.5px solid rgba(0,0,0,0.2);
+  font-size: 13px;
+  font-family: inherit;
+  color: #1a1a1a;
+  background: #fff;
+}
+
+.stop-round-row input[type="number"]:focus {
+  outline: none;
+  border-color: #534AB7;
+}
+
+.stop-round-row label {
+  font-size: 13px;
+  color: #555;
+  flex: 1;
+}
+
+.divider {
+  height: 0.5px;
+  background: rgba(0,0,0,0.1);
+}
+
+#win-log-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#win-log-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+#win-log-section h2 {
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0;
+}
+
+#btn-stats {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 0.5px solid rgba(83,74,183,0.3);
+  color: #534AB7;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+#btn-stats:hover { background: #f0eeff; }
+
+#win-log-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 0;
+}
+
+.win-log-entry {
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border-left: 3px solid;
+  background: #f9f9f9;
+  line-height: 1.4;
+}
+
+.win-log-entry .win-log-game {
+  font-weight: 600;
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.win-log-entry .win-log-player {
+  font-weight: 600;
+}
+
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+#round-banner {
+  padding: 10px 20px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  text-align: center;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+#round-banner span {
+  font-size: 15px;
+  font-weight: 500;
+  color: #534AB7;
+}
+
+#arena {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 0;
+}
+
+#arena canvas {
+  display: block;
+  cursor: pointer;
+}
+
+#turn-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+#turn-display .card-value {
+  font-size: 32px;
+  font-weight: 500;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+#turn-display .turn-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+#center-pile {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 6px;
+}
+
+#bs-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 20px;
+  text-align: center;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.15);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 30;
+  min-width: 200px;
+}
+
+#bs-toast.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#bs-toast .bs-headline {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+#bs-toast .bs-detail {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+#logs-area {
+  background: #fff;
+  border-top: 0.5px solid rgba(0,0,0,0.1);
+  padding: 12px 16px;
+  height: 190px;
+  min-height: 190px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#logs-area h3 {
+  font-size: 12px;
+  font-weight: 500;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+#player-logs {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.player-log {
+  min-width: 130px;
+  max-width: 160px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.player-log-name {
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  padding-bottom: 3px;
+  border-bottom: 2px solid;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-log-name .card-count {
+  font-size: 10px;
+  font-weight: 400;
+  color: #aaa;
+}
+
+.player-log-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.round-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.round-label {
+  font-size: 9px;
+  color: #aaa;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.round-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.card-chip {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #fff;
+}
+
+.card-chip.skipped {
+  opacity: 0.35;
+  text-decoration: line-through;
+}
+
+.card-chip.bluffed {
+  background: #e67e22 !important;
+  border: 1px dashed #c0392b;
+}
+
+.card-chip.caught {
+  background: #c0392b !important;
+}
+
+.card-chip.pickup {
+  background: #7f8c8d !important;
+}
+
+#popout-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+
+#popout-overlay.visible {
+  display: block;
+}
+
+#popout {
+  position: absolute;
+  background: #fff;
+  border: 0.5px solid rgba(0,0,0,0.15);
+  border-radius: 12px;
+  padding: 16px;
+  width: 280px;
+  max-height: 420px;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  z-index: 20;
+}
+
+#popout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+#popout-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#popout-close {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: #f4f3ee;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+#popout-close:hover { background: #e8e6e0; }
+
+.popout-section {
+  margin-bottom: 14px;
+}
+
+.popout-section-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.popout-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.popout-section-divider {
+  height: 0.5px;
+  background: rgba(0,0,0,0.08);
+  margin-bottom: 14px;
+}
+
+.popout-stat {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.no-data {
+  font-size: 12px;
+  color: #bbb;
+  font-style: italic;
+}
+
+.hand-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.hand-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 0.5px solid rgba(0,0,0,0.12);
+  background: #fff;
+  white-space: nowrap;
+}
+
+.hand-card.played-card {
+  opacity: 0.3;
+  text-decoration: line-through;
+  background: #f4f3ee;
+}
+
+.hand-card.active-card {
+  border-color: currentColor;
+  box-shadow: 0 0 0 1.5px currentColor;
+}
+
+.play-history-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 3px 0;
+  border-bottom: 0.5px solid rgba(0,0,0,0.05);
+}
+
+.play-history-row:last-child { border-bottom: none; }
+
+.play-history-meta {
+  font-size: 10px;
+  color: #aaa;
+  min-width: 70px;
+}
+
+.play-history-card {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+#win-screen {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.96);
+  z-index: 50;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+}
+
+#win-screen.visible { display: flex; }
+
+#win-emoji { font-size: 48px; }
+#win-title { font-size: 28px; font-weight: 500; }
+#win-sub { font-size: 15px; color: #666; }
+#win-round-info { font-size: 13px; color: #999; margin-top: -4px; }
+
+#win-btn {
+  margin-top: 8px;
+  padding: 10px 24px;
+  background: #534AB7;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+#win-btn:hover { background: #3C3489; }
+
+#win-review-btn {
+  padding: 8px 20px;
+  background: #fff;
+  color: #534AB7;
+  border: 1.5px solid #534AB7;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: -4px;
+}
+
+#win-review-btn:hover { background: #f0eeff; }
+
+#review-modal {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.97);
+  z-index: 60;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#review-modal.visible { display: flex; }
+
+#review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 0.5px solid rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+#review-header h2 { font-size: 16px; font-weight: 600; }
+
+#review-close {
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 0.5px solid rgba(0,0,0,0.2);
+  background: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#review-close:hover { background: #f4f3ee; }
+
+#review-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 20px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+
+.review-player-col {
+  min-width: 180px;
+  flex: 1;
+  max-width: 240px;
+}
+
+.review-player-header {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 7px;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.review-play-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  margin-bottom: 3px;
+  background: #f9f9f9;
+}
+
+.review-play-row.bluff-row { background: #fff3e6; }
+.review-play-row.caught-row { background: #fdecea; }
+.review-play-row.pickup-row { background: #f0f0f0; }
+
+.review-play-row .meta { font-size: 10px; color: #aaa; min-width: 80px; flex-shrink: 0; }
+
+.review-play-row .cards {
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.red-card { color: #c0392b; }
+.black-card { color: #1a1a1a; }
+
+.review-skip-row {
+  font-size: 11px;
+  color: #bbb;
+  padding: 2px 6px;
+  margin-bottom: 2px;
+}
+
+.review-tag {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  align-self: center;
+}
+
+.tag-bluff { background: #e67e22; color: #fff; }
+.tag-caught { background: #c0392b; color: #fff; }
+.tag-gotaway { background: #1D9E75; color: #fff; }
+.tag-pickup { background: #7f8c8d; color: #fff; }
+.tag-called-bs { background: #534AB7; color: #fff; }
+.tag-bs-wrong { background: #888; color: #fff; }
+
+#stats-panel {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100vh;
+  background: #fff;
+  border-left: 0.5px solid rgba(0,0,0,0.12);
+  z-index: 100;
+  flex-direction: column;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.08);
+}
+
+#stats-panel.visible { display: flex; }
+
+#stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 0.5px solid rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+#stats-header h3 { font-size: 14px; font-weight: 600; }
+
+#stats-close {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: #f4f3ee;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  padding: 0;
+}
+
+#stats-close:hover { background: #e8e6e0; }
+
+#stats-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stats-total {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.stat-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-player-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stat-wins {
+  font-size: 12px;
+  color: #555;
+}
+
+.stat-bar-bg {
+  height: 6px;
+  border-radius: 3px;
+  background: #eee;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.stat-pct {
+  font-size: 11px;
+  color: #888;
+  text-align: right;
+}
+
+.stat-bs-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.stat-bs-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.smartness-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.smartness-modal.visible { display: flex; }
+
+.smartness-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  width: 340px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.smartness-box h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.smartness-box p {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.smartness-player-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.smartness-player-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.smartness-player-label .sm-val {
+  font-size: 12px;
+  color: #888;
+  font-weight: 400;
+}
+
+.smartness-row-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.smartness-row-controls input[type="range"] {
+  flex: 1;
+}
+
+.smartness-randomize {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 0.5px solid rgba(0,0,0,0.15);
+  cursor: pointer;
+  background: #f4f3ee;
+  color: #555;
+}
+
+.smartness-box-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.smartness-box-footer button {
+  padding: 8px 18px;
+  font-size: 13px;
+}
+
+#btn-smartness {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 0.5px solid rgba(83,74,183,0.3);
+  color: #534AB7;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+#btn-smartness:hover { background: #f0eeff; }
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <h2>Settings</h2>
+
+  <div class="setting-group">
+    <div class="setting-label">Players <span id="player-count-label">3</span></div>
+    <input type="range" id="player-slider" min="2" max="10" value="3" step="1">
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="setting-group">
+    <div class="setting-label">Speed <span id="speed-label">0.5s</span></div>
+    <input type="range" id="speed-slider" min="1" max="38" value="20" step="1">
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="setting-group">
+    <div class="setting-label">Stop at round</div>
+    <div class="stop-round-row">
+      <input type="number" id="stop-round-input" min="1" placeholder="—">
+      <label>auto-pause</label>
+    </div>
+  </div>
+
+  <div class="setting-group">
+    <div class="setting-label">Stop at game</div>
+    <div class="stop-round-row">
+      <input type="number" id="stop-game-input" min="1" placeholder="—">
+      <label>auto-pause</label>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="controls">
+    <button id="btn-start">Start</button>
+    <button id="btn-pause">Pause</button>
+    <button id="btn-auto-loop">Auto Loop</button>
+    <button id="btn-reset">Reset</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div id="win-log-section">
+    <div id="win-log-header-row">
+      <h2>Game History</h2>
+      <div style="display:flex;gap:6px">
+        <button id="btn-smartness">🧠 Smart</button>
+        <button id="btn-stats">Stats</button>
+      </div>
+    </div>
+    <div id="win-log-list">
+      <span class="no-data" style="font-size:12px;color:#bbb;font-style:italic;padding:4px 0;">No games yet</span>
+    </div>
+  </div>
+</aside>
+
+<main id="main">
+  <div id="round-banner">Round <span id="round-number">—</span></div>
+
+  <div id="arena">
+    <canvas id="canvas"></canvas>
+    <div id="turn-display">
+      <div class="card-value" id="card-value">—</div>
+      <div class="turn-label" id="turn-label">press start</div>
+      <div id="center-pile"></div>
+    </div>
+
+    <div id="bs-toast">
+      <div class="bs-headline" id="bs-headline"></div>
+      <div class="bs-detail" id="bs-detail"></div>
+    </div>
+
+    <div id="popout-overlay">
+      <div id="popout">
+        <div id="popout-header">
+          <div id="popout-title">Player</div>
+          <button id="popout-close">✕</button>
+        </div>
+        <div class="popout-section">
+          <div class="popout-section-label">Hand</div>
+          <div class="hand-grid" id="popout-hand"></div>
+        </div>
+        <div class="popout-section-divider"></div>
+        <div class="popout-section">
+          <div class="popout-section-label">Cards played (round / turn)</div>
+          <div id="popout-played-list"></div>
+        </div>
+        <div class="popout-section-divider"></div>
+        <div class="popout-section">
+          <div class="popout-section-label">Card repeat cycle</div>
+          <div class="popout-stat" id="popout-cycle-stat"></div>
+        </div>
+        <div class="popout-section-divider"></div>
+        <div class="popout-section">
+          <div class="popout-section-label">Round start info</div>
+          <div class="popout-stat" id="popout-start-stat"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="win-screen">
+      <div id="win-emoji">🏆</div>
+      <div id="win-title"></div>
+      <div id="win-sub">played all their cards first!</div>
+      <div id="win-round-info"></div>
+      <button id="win-review-btn">Review Game</button>
+      <button id="win-btn">Play Again</button>
+    </div>
+
+    <div id="review-modal">
+      <div id="review-header">
+        <h2>Game Review</h2>
+        <button id="review-close">Close</button>
+      </div>
+      <div id="review-body"></div>
+    </div>
+  </div>
+
+  <div id="logs-area">
+    <h3>Card History</h3>
+    <div id="player-logs"></div>
+  </div>
+</main>
+
+<div id="stats-panel">
+  <div id="stats-header">
+    <h3>Win Stats</h3>
+    <button id="stats-close">✕</button>
+  </div>
+  <div id="stats-body">
+    <div class="stats-total" id="stats-total">0 games played</div>
+  </div>
+</div>
+
+<div class="smartness-modal" id="smartness-modal">
+  <div class="smartness-box">
+    <h3>🧠 Player Smartness</h3>
+    <p>Smartness (0–1) controls how well a player tracks cards and calls BS. Smarter players remember what's been played and make informed decisions. Changes only apply after a full Reset.</p>
+    <div id="smartness-players-list"></div>
+    <div class="smartness-box-footer">
+      <button id="btn-smartness-randomize-all" style="font-size:12px;padding:6px 12px;color:#534AB7;border-color:rgba(83,74,183,0.3);">Randomize All</button>
+      <button id="btn-smartness-close" style="background:#534AB7;color:#fff;border-color:#534AB7;">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = ['#534AB7','#D85A30','#1D9E75','#D4537E','#BA7517','#378ADD','#7B3FA0','#2E86C1','#A04030','#4A7C59'];
+const SUITS = ['♠','♥','♦','♣'];
+const SUIT_KEYS = ['s','h','d','c'];
+const RANK_NAMES = {1:'A',11:'J',12:'Q',13:'K'};
+
+function rankLabel(r) { return RANK_NAMES[r] || String(r); }
+function cardId(rank, suit) { return rank + suit; }
+function cardDisplay(rank, suit) { return rankLabel(rank) + SUITS[SUIT_KEYS.indexOf(suit)]; }
+
+function buildDeck() {
+  const deck = [];
+  for (let r = 1; r <= 13; r++) {
+    for (const s of SUIT_KEYS) {
+      deck.push({rank: r, suit: s, id: cardId(r, s)});
+    }
+  }
+  return deck;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function dealCards(n) {
+  const deck = shuffle(buildDeck());
+  const hands = Array.from({length: n}, () => []);
+  deck.forEach((card, i) => hands[i % n].push(card));
+  return hands;
+}
+
+function findAceOfSpadesHolder(handsArr) {
+  for (let i = 0; i < handsArr.length; i++) {
+    if (handsArr[i].some(c => c.rank === 1 && c.suit === 's')) return i;
+  }
+  return 0;
+}
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const playerSlider = document.getElementById('player-slider');
+const speedSlider = document.getElementById('speed-slider');
+const playerCountLabel = document.getElementById('player-count-label');
+const speedLabelEl = document.getElementById('speed-label');
+const cardValueEl = document.getElementById('card-value');
+const turnLabelEl = document.getElementById('turn-label');
+const centerPileEl = document.getElementById('center-pile');
+const playerLogsEl = document.getElementById('player-logs');
+const roundNumberEl = document.getElementById('round-number');
+const stopRoundInput = document.getElementById('stop-round-input');
+const stopGameInput = document.getElementById('stop-game-input');
+const popoutOverlay = document.getElementById('popout-overlay');
+const popout = document.getElementById('popout');
+const popoutTitle = document.getElementById('popout-title');
+const popoutHand = document.getElementById('popout-hand');
+const popoutPlayedList = document.getElementById('popout-played-list');
+const popoutCycleStat = document.getElementById('popout-cycle-stat');
+const popoutStartStat = document.getElementById('popout-start-stat');
+const winScreen = document.getElementById('win-screen');
+const winTitle = document.getElementById('win-title');
+const winRoundInfo = document.getElementById('win-round-info');
+const winBtn = document.getElementById('win-btn');
+const winReviewBtn = document.getElementById('win-review-btn');
+const reviewModal = document.getElementById('review-modal');
+const reviewBody = document.getElementById('review-body');
+const reviewClose = document.getElementById('review-close');
+const winLogList = document.getElementById('win-log-list');
+const btnStart = document.getElementById('btn-start');
+const btnReset = document.getElementById('btn-reset');
+const btnAutoLoop = document.getElementById('btn-auto-loop');
+const statsPanel = document.getElementById('stats-panel');
+const statsBody = document.getElementById('stats-body');
+const statsTotal = document.getElementById('stats-total');
+const bsToast = document.getElementById('bs-toast');
+const bsHeadline = document.getElementById('bs-headline');
+const bsDetail = document.getElementById('bs-detail');
+const smartnessModal = document.getElementById('smartness-modal');
+
+let numPlayers = 3;
+let currentPlayer = 0;
+let currentRank = 1;
+let running = false;
+let timer = null;
+let activePlayerIndex = -1;
+let currentRound = 0;
+let openPopoutPlayer = -1;
+let playerPositions = [];
+let globalTurn = 0;
+let resetPending = false;
+let gameCount = 0;
+let autoLoop = false;
+
+let hands = [];
+let playedCards = [];
+let playerRounds = [];
+let firstCardEachRound = [];
+let centerPile = [];
+let discardLog = [];
+
+let finalHands = null;
+let finalDiscardLog = null;
+let finalRounds = null;
+let finalNumPlayers = null;
+
+let winCounts = [];
+let totalRoundsAll = 0;
+let totalTurnsAll = 0;
+let lastWinnerIdx = -1;
+
+let playerSmartnessSettings = [];
+let playerSmartness = [];
+
+let bsToastTimer = null;
+
+let playerMemory = [];
+
+let aggregateStats = [];
+
+function initSmartnessSettings(n) {
+  playerSmartnessSettings = Array.from({length: n}, () => Math.random());
+}
+
+function buildSmartnessUI() {
+  const list = document.getElementById('smartness-players-list');
+  list.innerHTML = '';
+  const n = parseInt(playerSlider.value);
+  if (playerSmartnessSettings.length < n) {
+    while (playerSmartnessSettings.length < n) playerSmartnessSettings.push(Math.random());
+  }
+  for (let i = 0; i < n; i++) {
+    const val = playerSmartnessSettings[i] !== undefined ? playerSmartnessSettings[i] : Math.random();
+    const row = document.createElement('div');
+    row.className = 'smartness-player-row';
+    row.innerHTML = `
+      <div class="smartness-player-label">
+        <span style="color:${COLORS[i]};font-weight:600">Player ${i+1}</span>
+        <span class="sm-val" id="sm-val-${i}">${val.toFixed(2)}</span>
+      </div>
+      <div class="smartness-row-controls">
+        <input type="range" min="0" max="1" step="0.01" value="${val}" id="sm-slider-${i}" style="accent-color:${COLORS[i]}">
+      </div>
+    `;
+    list.appendChild(row);
+    const slider = row.querySelector(`#sm-slider-${i}`);
+    slider.addEventListener('input', () => {
+      const v = parseFloat(slider.value);
+      playerSmartnessSettings[i] = v;
+      document.getElementById(`sm-val-${i}`).textContent = v.toFixed(2);
+    });
+  }
+}
+
+document.getElementById('btn-smartness').addEventListener('click', () => {
+  buildSmartnessUI();
+  smartnessModal.classList.add('visible');
+});
+
+document.getElementById('btn-smartness-close').addEventListener('click', () => {
+  smartnessModal.classList.remove('visible');
+});
+
+document.getElementById('btn-smartness-randomize-all').addEventListener('click', () => {
+  const n = parseInt(playerSlider.value);
+  for (let i = 0; i < n; i++) {
+    const v = Math.random();
+    playerSmartnessSettings[i] = v;
+    const slider = document.getElementById(`sm-slider-${i}`);
+    const valEl = document.getElementById(`sm-val-${i}`);
+    if (slider) slider.value = v;
+    if (valEl) valEl.textContent = v.toFixed(2);
+  }
+});
+
+smartnessModal.addEventListener('click', (e) => {
+  if (e.target === smartnessModal) smartnessModal.classList.remove('visible');
+});
+
+function initMemory() {
+  playerMemory = Array.from({length: numPlayers}, () => ({
+    seenCards: {},
+    playedByPlayer: Array.from({length: numPlayers}, () => ({})),
+    pickedUpRounds: [],
+    suspicionLevel: Array.from({length: numPlayers}, () => 0),
+    knownPickups: Array.from({length: numPlayers}, () => 0),
+  }));
+}
+
+function recordCardSeen(observerIdx, ownerIdx, card) {
+  if (observerIdx === ownerIdx) return;
+  const smartness = playerSmartness[observerIdx] || 0;
+  if (Math.random() > smartness * 0.8 + 0.2) return;
+  const mem = playerMemory[observerIdx];
+  if (!mem.playedByPlayer[ownerIdx]) mem.playedByPlayer[ownerIdx] = {};
+  mem.playedByPlayer[ownerIdx][card.rank] = (mem.playedByPlayer[ownerIdx][card.rank] || 0) + 1;
+}
+
+function recordPickup(observerIdx, pickerIdx, count) {
+  const smartness = playerSmartness[observerIdx] || 0;
+  if (Math.random() > smartness * 0.9 + 0.1) return;
+  playerMemory[observerIdx].knownPickups[pickerIdx] = (playerMemory[observerIdx].knownPickups[pickerIdx] || 0) + count;
+}
+
+function estimateProbPlayerHasRank(observerIdx, targetIdx, rank) {
+  if (observerIdx === targetIdx) return 0;
+  const mem = playerMemory[observerIdx];
+  const smartness = playerSmartness[observerIdx] || 0;
+  if (smartness < 0.05) return 0.5;
+
+  const totalOfRank = 4;
+  let knownHeld = 0;
+  let knownPlayed = 0;
+
+  for (let p = 0; p < numPlayers; p++) {
+    if (p === targetIdx) continue;
+    knownPlayed += (mem.playedByPlayer[p] && mem.playedByPlayer[p][rank]) ? mem.playedByPlayer[p][rank] : 0;
+  }
+
+  const myHand = hands[observerIdx];
+  const myCount = myHand ? myHand.filter(c => !c.played && c.rank === rank).length : 0;
+
+  const remaining = Math.max(0, totalOfRank - knownPlayed - myCount);
+  const otherPlayers = numPlayers - 1;
+  const baseProbability = otherPlayers > 0 ? remaining / otherPlayers : 0;
+
+  const pickupBonus = mem.knownPickups[targetIdx] ? Math.min(0.3, mem.knownPickups[targetIdx] * 0.05) : 0;
+
+  return Math.min(1, baseProbability + pickupBonus);
+}
+
+function shouldBluff(playerIdx, rank) {
+  const smartness = playerSmartness[playerIdx] || 0;
+  const hasCard = hands[playerIdx].some(c => !c.played && c.rank === rank);
+  if (hasCard) return false;
+
+  const baseBluffChance = 0.5 - smartness * 0.3;
+
+  const cardsLeft = hands[playerIdx].filter(c => !c.played).length;
+  const urgencyBonus = cardsLeft <= 5 ? 0.15 : 0;
+  const urgencyBonus2 = cardsLeft <= 2 ? 0.2 : 0;
+
+  const bluffProb = Math.max(0.05, Math.min(0.85, baseBluffChance + urgencyBonus + urgencyBonus2));
+  return Math.random() < bluffProb;
+}
+
+function shouldCallBS(callerIdx, playerIdx, claimedRank, numCardsPlayed) {
+  const smartness = playerSmartness[callerIdx] || 0;
+  const baseCallChance = 0.05 + smartness * 0.35;
+
+  const probHasCard = estimateProbPlayerHasRank(callerIdx, playerIdx, claimedRank);
+  const smartAdjustment = (1 - probHasCard) * smartness * 0.6;
+
+  const myCardsOfRank = hands[callerIdx].filter(c => !c.played && c.rank === claimedRank).length;
+  const exhaustionBonus = myCardsOfRank >= 3 ? 0.3 : myCardsOfRank >= 2 ? 0.15 : 0;
+
+  const totalProb = Math.min(0.9, baseCallChance + smartAdjustment + exhaustionBonus);
+  return Math.random() < totalProb;
+}
+
+function pickBluffCard(playerIdx) {
+  const available = hands[playerIdx].filter(c => !c.played);
+  if (available.length === 0) return null;
+  return available[Math.floor(Math.random() * available.length)];
+}
+
+let bluffStats = [];
+
+function initBluffStats() {
+  bluffStats = Array.from({length: numPlayers}, () => ({
+    bluffAttempts: 0,
+    caughtBluffing: 0,
+    gotAwayWithBluff: 0,
+    calledBSCorrect: 0,
+    calledBSWrong: 0,
+    totalPlays: 0,
+  }));
+}
+
+function initAggregateStats(n) {
+  if (aggregateStats.length !== n) {
+    aggregateStats = Array.from({length: n}, () => ({
+      wins: 0,
+      bluffAttempts: 0,
+      caughtBluffing: 0,
+      gotAwayWithBluff: 0,
+      calledBSCorrect: 0,
+      calledBSWrong: 0,
+      totalPlays: 0,
+      smartness: 0,
+    }));
+  }
+}
+
+function initState(keepRunning) {
+  numPlayers = parseInt(playerSlider.value);
+
+  if (playerSmartnessSettings.length < numPlayers) {
+    while (playerSmartnessSettings.length < numPlayers) playerSmartnessSettings.push(Math.random());
+  }
+  playerSmartness = playerSmartnessSettings.slice(0, numPlayers);
+
+  currentRank = 1;
+  activePlayerIndex = -1;
+  currentRound = 0;
+  openPopoutPlayer = -1;
+  globalTurn = 0;
+  resetPending = false;
+  btnReset.textContent = 'Reset';
+  btnReset.classList.remove('confirm-reset');
+
+  hands = dealCards(numPlayers);
+  currentPlayer = findAceOfSpadesHolder(hands);
+
+  playedCards = Array.from({length: numPlayers}, () => []);
+  playerRounds = Array.from({length: numPlayers}, () => []);
+  firstCardEachRound = Array.from({length: numPlayers}, () => []);
+  centerPile = [];
+  discardLog = Array.from({length: numPlayers}, () => []);
+
+  initMemory();
+  initBluffStats();
+
+  finalHands = null;
+  finalDiscardLog = null;
+  finalRounds = null;
+  finalNumPlayers = null;
+
+  cardValueEl.textContent = '—';
+  turnLabelEl.textContent = keepRunning ? 'running...' : 'press start';
+  centerPileEl.textContent = '';
+  roundNumberEl.textContent = '—';
+
+  if (!autoLoop) {
+    btnStart.textContent = 'Start';
+  }
+
+  winScreen.classList.remove('visible');
+  reviewModal.classList.remove('visible');
+  closePopout();
+  computePlayerPositions();
+  renderLogs();
+  drawCircle();
+}
+
+function resizeCanvas() {
+  const arena = document.getElementById('arena');
+  canvas.width = arena.clientWidth;
+  canvas.height = arena.clientHeight;
+  computePlayerPositions();
+  drawCircle();
+}
+
+function computePlayerPositions() {
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2;
+  const radius = Math.min(w, h) * 0.32;
+  playerPositions = [];
+  for (let i = 0; i < numPlayers; i++) {
+    const angle = (2 * Math.PI * i / numPlayers) - Math.PI / 2;
+    playerPositions.push({
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle)
+    });
+  }
+}
+
+function drawCircle() {
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  if (playerPositions.length !== numPlayers) computePlayerPositions();
+  const r = 30;
+  for (let i = 0; i < numPlayers; i++) {
+    if (!playerPositions[i]) continue;
+    const {x, y} = playerPositions[i];
+    const isActive = i === activePlayerIndex;
+    const handSize = hands[i] ? hands[i].filter(c => !c.played).length : 0;
+    if (isActive) {
+      ctx.beginPath();
+      ctx.arc(x, y, r + 7, 0, 2 * Math.PI);
+      ctx.fillStyle = COLORS[i] + '33';
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fillStyle = COLORS[i];
+    ctx.fill();
+    if (isActive) {
+      ctx.strokeStyle = COLORS[i];
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#fff';
+    ctx.font = '500 12px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('P' + (i + 1), x, y - 5);
+    ctx.font = '400 10px -apple-system, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillText(handSize + ' cards', x, y + 7);
+  }
+}
+
+function findAllCardsOfRank(playerIdx, rank) {
+  return hands[playerIdx].filter(c => c.rank === rank && !c.played);
+}
+
+function getIntervalMs() {
+  const val = parseInt(speedSlider.value);
+  const speeds = [
+    0, 1, 2, 3, 5, 7, 10, 15, 20, 30,
+    40, 50, 60, 75, 100, 125, 150, 175, 200, 250,
+    300, 350, 400, 450, 500, 600, 700, 800, 900, 1000,
+    1200, 1400, 1600, 1800, 2000, 2400, 2800, 3200
+  ];
+  return speeds[val - 1] !== undefined ? speeds[val - 1] : 500;
+}
+
+function isInstant() {
+  return getIntervalMs() === 0;
+}
+
+function speedLabel(ms) {
+  if (ms === 0) return 'instant';
+  if (ms < 100) return ms + 'ms';
+  return (ms / 1000).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') + 's';
+}
+
+function showBSToast(headline, detail, color, duration) {
+  if (isInstant()) return;
+  bsHeadline.textContent = headline;
+  bsHeadline.style.color = color || '#1a1a1a';
+  bsDetail.textContent = detail;
+  bsToast.classList.add('show');
+  if (bsToastTimer) clearTimeout(bsToastTimer);
+  bsToastTimer = setTimeout(() => {
+    bsToast.classList.remove('show');
+  }, duration || 1800);
+}
+
+function runInstantGame() {
+  let safetyLimit = 500000;
+  while (safetyLimit-- > 0) {
+    const result = doStepReturn();
+    if (result === 'winner') break;
+  }
+}
+
+function step() {
+  if (isInstant()) {
+    runInstantGame();
+    return;
+  }
+  if (currentRank === 1) {
+    currentRound++;
+    for (let i = 0; i < numPlayers; i++) {
+      playerRounds[i].push([]);
+    }
+    roundNumberEl.textContent = currentRound;
+    const stopAt = parseInt(stopRoundInput.value);
+    if (!isNaN(stopAt) && currentRound === stopAt) {
+      doStepReturn();
+      running = false;
+      clearInterval(timer);
+      timer = null;
+      turnLabelEl.textContent = 'paused — round ' + currentRound;
+      return;
+    }
+  }
+  const result = doStepReturn();
+  if (result === 'winner') return;
+}
+
+function doStepReturn() {
+  if (currentRank === 1 && isInstant()) {
+    currentRound++;
+    for (let i = 0; i < numPlayers; i++) playerRounds[i].push([]);
+  }
+
+  activePlayerIndex = currentPlayer;
+  const rank = currentRank;
+  globalTurn++;
+  const thisTurn = globalTurn;
+  const matchCards = findAllCardsOfRank(currentPlayer, rank);
+
+  if (playerRounds[currentPlayer][currentRound - 1] !== undefined &&
+      playerRounds[currentPlayer][currentRound - 1].length === 0) {
+    firstCardEachRound[currentPlayer].push({round: currentRound, rank: rank});
+  }
+
+  bluffStats[currentPlayer].totalPlays++;
+
+  const willBluff = shouldBluff(currentPlayer, rank);
+  let playedThisTurn = [];
+  let wasBluff = false;
+  let bluffCard = null;
+  let claimedRank = rank;
+
+  if (matchCards.length > 0 && !willBluff) {
+    matchCards.forEach(card => {
+      card.played = true;
+      playedCards[currentPlayer].push(card);
+      centerPile.push({...card, fromPlayer: currentPlayer, claimedRank: rank, isBluff: false});
+    });
+    playedThisTurn = matchCards;
+    matchCards.forEach(() => {
+      playerRounds[currentPlayer][currentRound - 1].push({rank, played: true, isBluff: false});
+    });
+    discardLog[currentPlayer].push({
+      cards: matchCards, round: currentRound, turn: thisTurn, isBluff: false, claimedRank: rank
+    });
+
+    for (let obs = 0; obs < numPlayers; obs++) {
+      if (obs !== currentPlayer) {
+        matchCards.forEach(card => recordCardSeen(obs, currentPlayer, card));
+      }
+    }
+
+    if (!isInstant()) {
+      if (matchCards.length === 1) {
+        const isRed = matchCards[0].suit === 'h' || matchCards[0].suit === 'd';
+        cardValueEl.innerHTML = '<span style="color:' + (isRed ? '#c0392b' : '#1a1a1a') + '">' + cardDisplay(matchCards[0].rank, matchCards[0].suit) + '</span>';
+        turnLabelEl.textContent = 'P' + (currentPlayer + 1) + ' played!';
+      } else {
+        let html = matchCards.map(c => {
+          const red = c.suit === 'h' || c.suit === 'd';
+          return '<span style="color:' + (red ? '#c0392b' : '#1a1a1a') + '">' + cardDisplay(c.rank, c.suit) + '</span>';
+        }).join(' ');
+        cardValueEl.innerHTML = html;
+        turnLabelEl.textContent = 'P' + (currentPlayer + 1) + ' played ' + matchCards.length + '!';
+      }
+    }
+  } else if (willBluff || matchCards.length === 0) {
+    bluffCard = pickBluffCard(currentPlayer);
+    if (!bluffCard) {
+      playerRounds[currentPlayer][currentRound - 1].push({rank, played: false});
+      discardLog[currentPlayer].push({cards: [], skipped: true, rank, round: currentRound, turn: thisTurn, isBluff: false, claimedRank: rank});
+      if (!isInstant()) {
+        cardValueEl.textContent = rankLabel(rank) + ' —';
+        turnLabelEl.textContent = 'P' + (currentPlayer + 1) + ' skips';
+      }
+    } else if (willBluff && matchCards.length === 0) {
+      bluffCard.played = true;
+      playedCards[currentPlayer].push(bluffCard);
+      centerPile.push({...bluffCard, fromPlayer: currentPlayer, claimedRank: rank, isBluff: true});
+      playedThisTurn = [bluffCard];
+      wasBluff = true;
+      bluffStats[currentPlayer].bluffAttempts++;
+      playerRounds[currentPlayer][currentRound - 1].push({rank, played: true, isBluff: true});
+      discardLog[currentPlayer].push({
+        cards: [bluffCard], round: currentRound, turn: thisTurn,
+        isBluff: true, claimedRank: rank, actualRank: bluffCard.rank
+      });
+
+      if (!isInstant()) {
+        cardValueEl.textContent = rankLabel(rank) + ' (bluff!)';
+        cardValueEl.style.color = '#e67e22';
+        turnLabelEl.textContent = 'P' + (currentPlayer + 1) + ' claims ' + rankLabel(rank);
+        setTimeout(() => { cardValueEl.style.color = ''; }, 800);
+      }
+    } else {
+      playerRounds[currentPlayer][currentRound - 1].push({rank, played: false});
+      discardLog[currentPlayer].push({cards: [], skipped: true, rank, round: currentRound, turn: thisTurn, isBluff: false, claimedRank: rank});
+      if (!isInstant()) {
+        cardValueEl.textContent = rankLabel(rank) + ' —';
+        turnLabelEl.textContent = 'P' + (currentPlayer + 1) + ' skips';
+      }
+    }
+  } else {
+    playerRounds[currentPlayer][currentRound - 1].push({rank, played: false});
+    discardLog[currentPlayer].push({cards: [], skipped: true, rank, round: currentRound, turn: thisTurn, isBluff: false, claimedRank: rank});
+    if (!isInstant()) {
+      cardValueEl.textContent = rankLabel(rank) + ' —';
+      turnLabelEl.textContent = 'P' + (currentPlayer + 1) + ' skips';
+    }
+  }
+
+  if (playedThisTurn.length > 0) {
+    let bsCalled = false;
+    let bsCaller = -1;
+
+    for (let caller = 0; caller < numPlayers; caller++) {
+      if (caller === currentPlayer) continue;
+      if (shouldCallBS(caller, currentPlayer, rank, playedThisTurn.length)) {
+        bsCalled = true;
+        bsCaller = caller;
+        break;
+      }
+    }
+
+    if (bsCalled) {
+      const lastEntry = centerPile[centerPile.length - 1];
+      const wasActuallyBluff = lastEntry && lastEntry.isBluff;
+
+      if (wasActuallyBluff) {
+        bluffStats[currentPlayer].caughtBluffing++;
+        bluffStats[bsCaller].calledBSCorrect++;
+
+        const pileCards = [...centerPile];
+        centerPile = [];
+
+        pileCards.forEach(c => {
+          const cardObj = hands[currentPlayer].find(h => h.id === c.id);
+          if (cardObj) {
+            cardObj.played = false;
+            playedCards[currentPlayer] = playedCards[currentPlayer].filter(pc => pc.id !== c.id);
+          }
+        });
+
+        const lastLog = discardLog[currentPlayer][discardLog[currentPlayer].length - 1];
+        if (lastLog) {
+          lastLog.bsCalled = true;
+          lastLog.bsCaller = bsCaller;
+          lastLog.bsResult = 'caught';
+          lastLog.pickedUpCount = pileCards.length;
+        }
+
+        discardLog[currentPlayer].push({
+          cards: pileCards,
+          round: currentRound, turn: thisTurn,
+          isPickup: true,
+          pickupCount: pileCards.length,
+          reason: 'caught bluffing by P' + (bsCaller + 1)
+        });
+
+        playerRounds[currentPlayer][currentRound - 1].push({rank: 0, played: false, isPickup: true, count: pileCards.length});
+
+        for (let obs = 0; obs < numPlayers; obs++) {
+          recordPickup(obs, currentPlayer, pileCards.length);
+        }
+
+        if (!isInstant()) {
+          showBSToast(
+            '🚨 BS! P' + (bsCaller + 1) + ' caught P' + (currentPlayer + 1) + '!',
+            'P' + (currentPlayer + 1) + ' was bluffing! Picks up ' + pileCards.length + ' cards.',
+            '#c0392b',
+            2200
+          );
+          turnLabelEl.textContent = 'P' + (currentPlayer + 1) + ' caught! +' + pileCards.length + ' cards';
+        }
+      } else {
+        bluffStats[bsCaller].calledBSWrong++;
+        bluffStats[currentPlayer].gotAwayWithBluff++;
+
+        const pileCards = [...centerPile];
+        centerPile = [];
+
+        pileCards.forEach(c => {
+          const cardObj = hands[bsCaller].find(h => h.id === c.id);
+        });
+
+        const pileForCaller = pileCards.map(c => ({...c}));
+        pileForCaller.forEach(c => {
+          const newCard = {rank: c.rank, suit: c.suit, id: c.id, played: false};
+          hands[bsCaller].push(newCard);
+        });
+
+        const lastLog = discardLog[currentPlayer][discardLog[currentPlayer].length - 1];
+        if (lastLog) {
+          lastLog.bsCalled = true;
+          lastLog.bsCaller = bsCaller;
+          lastLog.bsResult = 'gotaway';
+        }
+
+        discardLog[bsCaller].push({
+          cards: pileForCaller,
+          round: currentRound, turn: thisTurn,
+          isPickup: true,
+          pickupCount: pileForCaller.length,
+          reason: 'wrong BS call — P' + (currentPlayer + 1) + ' was honest'
+        });
+
+        playerRounds[bsCaller][currentRound - 1] = playerRounds[bsCaller][currentRound - 1] || [];
+        playerRounds[bsCaller][currentRound - 1].push({rank: 0, played: false, isPickup: true, count: pileForCaller.length});
+
+        for (let obs = 0; obs < numPlayers; obs++) {
+          recordPickup(obs, bsCaller, pileForCaller.length);
+        }
+
+        if (!isInstant()) {
+          showBSToast(
+            '✅ Not BS! P' + (bsCaller + 1) + ' was wrong!',
+            'P' + (currentPlayer + 1) + ' was honest! P' + (bsCaller + 1) + ' picks up ' + pileForCaller.length + ' cards.',
+            '#1D9E75',
+            2200
+          );
+          turnLabelEl.textContent = 'P' + (bsCaller + 1) + ' picks up! +' + pileForCaller.length;
+        }
+      }
+    }
+  }
+
+  const remaining = hands[currentPlayer].filter(c => !c.played).length;
+  if (!isInstant()) {
+    centerPileEl.textContent = centerPile.length + ' cards in pile';
+    refreshPopout();
+    renderLogs();
+    drawCircle();
+  }
+
+  if (remaining === 0) {
+    showWinner(currentPlayer);
+    return 'winner';
+  }
+
+  currentRank = (currentRank % 13) + 1;
+  currentPlayer = (currentPlayer + 1) % numPlayers;
+  return 'ok';
+}
+
+function showWinner(idx) {
+  running = false;
+  clearInterval(timer);
+  timer = null;
+
+  finalHands = hands.map(h => h.map(c => ({...c})));
+  finalDiscardLog = discardLog.map(dl => dl.map(e => ({
+    ...e,
+    cards: e.cards ? e.cards.map(c => ({...c})) : []
+  })));
+  finalRounds = playerRounds.map(r => r.map(rr => [...rr]));
+  finalNumPlayers = numPlayers;
+
+  gameCount++;
+
+  if (winCounts.length < numPlayers) {
+    winCounts = Array.from({length: numPlayers}, (_, i) => winCounts[i] || 0);
+  }
+  winCounts[idx] = (winCounts[idx] || 0) + 1;
+  totalRoundsAll += currentRound;
+  totalTurnsAll += globalTurn;
+  lastWinnerIdx = idx;
+
+  initAggregateStats(numPlayers);
+  for (let i = 0; i < numPlayers; i++) {
+    aggregateStats[i].bluffAttempts += bluffStats[i].bluffAttempts;
+    aggregateStats[i].caughtBluffing += bluffStats[i].caughtBluffing;
+    aggregateStats[i].gotAwayWithBluff += bluffStats[i].gotAwayWithBluff;
+    aggregateStats[i].calledBSCorrect += bluffStats[i].calledBSCorrect;
+    aggregateStats[i].calledBSWrong += bluffStats[i].calledBSWrong;
+    aggregateStats[i].totalPlays += bluffStats[i].totalPlays;
+    aggregateStats[i].smartness = playerSmartness[i];
+  }
+  aggregateStats[idx].wins++;
+
+  const stopGame = parseInt(stopGameInput.value);
+  if (!isNaN(stopGame) && gameCount >= stopGame) {
+    autoLoop = false;
+    btnAutoLoop.textContent = 'Auto Loop';
+    btnAutoLoop.classList.remove('active');
+  }
+
+  if (autoLoop) {
+    addWinLog(idx, currentRound, globalTurn, gameCount);
+    renderLogs();
+    drawCircle();
+    updateStats();
+    setTimeout(() => {
+      initState(true);
+      running = true;
+      if (isInstant()) {
+        timer = setInterval(step, 1);
+      } else {
+        timer = setInterval(step, getIntervalMs());
+      }
+    }, isInstant() ? 0 : 400);
+    return;
+  }
+
+  winTitle.textContent = 'Player ' + (idx + 1) + ' wins!';
+  winTitle.style.color = COLORS[idx];
+  winRoundInfo.textContent = 'Finished in round ' + currentRound + ' on turn ' + globalTurn;
+  winScreen.classList.add('visible');
+  btnStart.textContent = 'Play Again';
+  addWinLog(idx, currentRound, globalTurn, gameCount);
+  updateStats();
+}
+
+function addWinLog(playerIdx, round, turn, gameNum) {
+  const placeholder = winLogList.querySelector('.no-data');
+  if (placeholder) placeholder.remove();
+  const avgR = gameNum > 0 ? (totalRoundsAll / gameNum).toFixed(1) : '—';
+  const avgT = gameNum > 0 ? (totalTurnsAll / gameNum).toFixed(1) : '—';
+  const entry = document.createElement('div');
+  entry.className = 'win-log-entry';
+  entry.style.borderColor = COLORS[playerIdx];
+  const bs = bluffStats[playerIdx];
+  const bluffInfo = bs.bluffAttempts > 0
+    ? `<div style="font-size:10px;color:#e67e22;margin-top:1px">🃏 ${bs.bluffAttempts} bluffs · ${bs.caughtBluffing} caught · ${bs.gotAwayWithBluff} got away</div>`
+    : '';
+  entry.innerHTML = '<div class="win-log-game">Game ' + gameNum + '</div>' +
+    '<div class="win-log-player" style="color:' + COLORS[playerIdx] + '">Player ' + (playerIdx + 1) + ' won</div>' +
+    '<div style="font-size:11px;color:#888">Round ' + round + ' &middot; Turn ' + turn + '</div>' +
+    bluffInfo +
+    '<div style="font-size:10px;color:#bbb;margin-top:2px">Avg: ' + avgR + ' rounds &middot; ' + avgT + ' turns</div>';
+  winLogList.appendChild(entry);
+  winLogList.scrollTop = winLogList.scrollHeight;
+}
+
+function updateStats() {
+  const avgR = gameCount > 0 ? (totalRoundsAll / gameCount).toFixed(1) : '—';
+  const avgT = gameCount > 0 ? (totalTurnsAll / gameCount).toFixed(1) : '—';
+  statsTotal.innerHTML = gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' played' +
+    '<br><span style="font-size:11px;color:#aaa">Avg ' + avgR + ' rounds &middot; ' + avgT + ' turns per game</span>';
+  const rows = statsBody.querySelectorAll('.stat-row');
+  rows.forEach(r => r.remove());
+  const total = (winCounts || []).reduce((a, b) => a + (b || 0), 0);
+  const n = numPlayers;
+  initAggregateStats(n);
+  for (let i = 0; i < n; i++) {
+    const wins = winCounts[i] || 0;
+    const pct = total > 0 ? Math.round((wins / total) * 100) : 0;
+    const as = aggregateStats[i] || {};
+    const bluffPct = as.totalPlays > 0 ? Math.round((as.bluffAttempts / as.totalPlays) * 100) : 0;
+    const caughtPct = as.bluffAttempts > 0 ? Math.round((as.caughtBluffing / as.bluffAttempts) * 100) : 0;
+    const gotawayPct = as.bluffAttempts > 0 ? Math.round((as.gotAwayWithBluff / as.bluffAttempts) * 100) : 0;
+    const smPct = Math.round((as.smartness || playerSmartness[i] || 0) * 100);
+    const row = document.createElement('div');
+    row.className = 'stat-row';
+    row.innerHTML = '<div class="stat-row-header">' +
+      '<span class="stat-player-name" style="color:' + COLORS[i] + '">Player ' + (i + 1) + '</span>' +
+      '<span class="stat-wins">' + wins + ' win' + (wins !== 1 ? 's' : '') + '</span>' +
+      '</div>' +
+      '<div class="stat-bar-bg"><div class="stat-bar-fill" style="width:' + pct + '%;background:' + COLORS[i] + '"></div></div>' +
+      '<div class="stat-pct">' + pct + '% wins</div>' +
+      '<div class="stat-bs-row">' +
+        '<span class="stat-bs-badge" style="background:#f0eeff;color:#534AB7">🧠 ' + smPct + '% smart</span>' +
+        '<span class="stat-bs-badge" style="background:#fff3e6;color:#e67e22">🃏 ' + bluffPct + '% bluff rate</span>' +
+      '</div>' +
+      '<div class="stat-bs-row">' +
+        '<span class="stat-bs-badge" style="background:#fdecea;color:#c0392b">❌ ' + caughtPct + '% caught</span>' +
+        '<span class="stat-bs-badge" style="background:#edfaf5;color:#1D9E75">✅ ' + gotawayPct + '% got away</span>' +
+      '</div>' +
+      '<div style="font-size:10px;color:#bbb;margin-top:3px">' +
+        as.bluffAttempts + ' bluffs · ' + as.calledBSCorrect + ' correct BS calls · ' + as.calledBSWrong + ' wrong' +
+      '</div>';
+    statsBody.appendChild(row);
+  }
+}
+
+function openReviewModal() {
+  if (!finalDiscardLog) return;
+  reviewBody.innerHTML = '';
+  const reviewHeaderTitle = document.querySelector('#review-header h2');
+  if (lastWinnerIdx >= 0) {
+    reviewHeaderTitle.innerHTML = 'Game Review &nbsp;<span style="font-size:13px;font-weight:500;color:' + COLORS[lastWinnerIdx] + '">Player ' + (lastWinnerIdx + 1) + ' won</span>';
+  } else {
+    reviewHeaderTitle.textContent = 'Game Review';
+  }
+  for (let i = 0; i < finalNumPlayers; i++) {
+    const col = document.createElement('div');
+    col.className = 'review-player-col';
+    const header = document.createElement('div');
+    header.className = 'review-player-header';
+    header.style.background = COLORS[i];
+    const bs = bluffStats[i];
+    header.innerHTML = 'Player ' + (i + 1) +
+      '<span style="font-size:10px;font-weight:400;margin-left:8px;opacity:0.85">' +
+      bs.bluffAttempts + ' bluffs · ' + bs.caughtBluffing + ' caught</span>';
+    col.appendChild(header);
+    const log = finalDiscardLog[i];
+    if (log.length === 0) {
+      const noData = document.createElement('div');
+      noData.className = 'review-skip-row';
+      noData.textContent = 'No moves recorded';
+      col.appendChild(noData);
+    } else {
+      log.forEach(entry => {
+        if (entry.isPickup) {
+          const row = document.createElement('div');
+          row.className = 'review-play-row pickup-row';
+          row.innerHTML =
+            '<span class="meta">R' + entry.round + ' T' + entry.turn + '</span>' +
+            '<span class="cards" style="color:#7f8c8d">+' + entry.pickupCount + ' cards</span>' +
+            '<span class="review-tag tag-pickup">pickup</span>';
+          const detail = document.createElement('div');
+          detail.style.cssText = 'font-size:10px;color:#aaa;padding:0 6px 3px;width:100%';
+          detail.textContent = entry.reason || '';
+          col.appendChild(row);
+          col.appendChild(detail);
+        } else if (entry.skipped) {
+          const row = document.createElement('div');
+          row.className = 'review-skip-row';
+          row.textContent = 'R' + entry.round + ' T' + entry.turn + ' skipped ' + rankLabel(entry.rank);
+          col.appendChild(row);
+        } else {
+          const row = document.createElement('div');
+          let rowClass = 'review-play-row';
+          if (entry.isBluff) {
+            if (entry.bsResult === 'caught') rowClass += ' caught-row';
+            else rowClass += ' bluff-row';
+          }
+          row.className = rowClass;
+          const meta = document.createElement('span');
+          meta.className = 'meta';
+          meta.textContent = 'R' + entry.round + '  T' + entry.turn;
+          const cards = document.createElement('span');
+          cards.className = 'cards';
+          entry.cards.forEach(card => {
+            const cs = document.createElement('span');
+            const isRed = card.suit === 'h' || card.suit === 'd';
+            cs.className = isRed ? 'red-card' : 'black-card';
+            cs.textContent = cardDisplay(card.rank, card.suit);
+            cards.appendChild(cs);
+          });
+          row.appendChild(meta);
+          row.appendChild(cards);
+
+          if (entry.isBluff) {
+            const claimedLabel = document.createElement('span');
+            claimedLabel.style.cssText = 'font-size:10px;color:#e67e22;margin-left:2px';
+            claimedLabel.textContent = '(claimed ' + rankLabel(entry.claimedRank) + ')';
+            cards.appendChild(claimedLabel);
+
+            if (entry.bsResult === 'caught') {
+              const tag = document.createElement('span');
+              tag.className = 'review-tag tag-caught';
+              tag.textContent = 'caught';
+              row.appendChild(tag);
+            } else if (entry.bsResult === 'gotaway') {
+              const tag = document.createElement('span');
+              tag.className = 'review-tag tag-gotaway';
+              tag.textContent = 'got away';
+              row.appendChild(tag);
+            } else {
+              const tag = document.createElement('span');
+              tag.className = 'review-tag tag-bluff';
+              tag.textContent = 'bluff';
+              row.appendChild(tag);
+            }
+          }
+
+          if (entry.bsCalled && !entry.isBluff) {
+            const tag = document.createElement('span');
+            tag.className = 'review-tag tag-bs-wrong';
+            tag.textContent = 'bs called';
+            row.appendChild(tag);
+          }
+
+          col.appendChild(row);
+        }
+      });
+    }
+    reviewBody.appendChild(col);
+  }
+  reviewModal.classList.add('visible');
+}
+
+function renderLogs() {
+  playerLogsEl.innerHTML = '';
+  for (let i = 0; i < numPlayers; i++) {
+    const col = document.createElement('div');
+    col.className = 'player-log';
+    const name = document.createElement('div');
+    name.className = 'player-log-name';
+    name.style.borderColor = COLORS[i];
+    name.style.color = COLORS[i];
+    const remaining = hands[i] ? hands[i].filter(c => !c.played).length : 0;
+    name.innerHTML = 'P' + (i + 1) + '<span class="card-count">' + remaining + '</span>';
+    const scroll = document.createElement('div');
+    scroll.className = 'player-log-scroll';
+    const rounds = playerRounds[i];
+    for (let r = 0; r < rounds.length; r++) {
+      if (!rounds[r] || rounds[r].length === 0) continue;
+      const row = document.createElement('div');
+      row.className = 'round-row';
+      const lbl = document.createElement('div');
+      lbl.className = 'round-label';
+      lbl.textContent = 'R' + (r + 1);
+      const chips = document.createElement('div');
+      chips.className = 'round-chips';
+      rounds[r].forEach(entry => {
+        if (entry.isPickup) {
+          const chip = document.createElement('span');
+          chip.className = 'card-chip pickup';
+          chip.textContent = '+' + entry.count;
+          chips.appendChild(chip);
+        } else {
+          const chip = document.createElement('span');
+          let chipClass = 'card-chip';
+          if (!entry.played) chipClass += ' skipped';
+          else if (entry.isBluff) chipClass += ' bluffed';
+          chip.className = chipClass;
+          chip.textContent = rankLabel(entry.rank);
+          if (!entry.isBluff) chip.style.background = entry.played ? COLORS[i] : '#ccc';
+          chips.appendChild(chip);
+        }
+      });
+      row.appendChild(lbl);
+      row.appendChild(chips);
+      scroll.appendChild(row);
+    }
+    scroll.scrollTop = scroll.scrollHeight;
+    col.appendChild(name);
+    col.appendChild(scroll);
+    playerLogsEl.appendChild(col);
+  }
+}
+
+function buildPopoutContent(i) {
+  const color = COLORS[i];
+  popoutTitle.textContent = 'Player ' + (i + 1);
+  popoutTitle.style.color = color;
+  popoutHand.innerHTML = '';
+  const hand = hands[i] || [];
+  const sorted = [...hand].sort((a, b) => a.rank - b.rank || SUIT_KEYS.indexOf(a.suit) - SUIT_KEYS.indexOf(b.suit));
+  if (sorted.length === 0) {
+    popoutHand.innerHTML = '<span class="no-data">No cards</span>';
+  } else {
+    sorted.forEach(card => {
+      const el = document.createElement('span');
+      el.className = 'hand-card' + (card.played ? ' played-card' : '');
+      const isRed = card.suit === 'h' || card.suit === 'd';
+      el.style.color = isRed ? '#c0392b' : '#1a1a1a';
+      if (!card.played && card.rank === currentRank) el.classList.add('active-card');
+      el.textContent = cardDisplay(card.rank, card.suit);
+      popoutHand.appendChild(el);
+    });
+  }
+  popoutPlayedList.innerHTML = '';
+  const log = discardLog[i] || [];
+  const plays = log.filter(e => !e.skipped && !e.isPickup && e.cards && e.cards.length > 0);
+  if (plays.length === 0) {
+    popoutPlayedList.innerHTML = '<span class="no-data">None yet</span>';
+  } else {
+    plays.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'play-history-row';
+      const meta = document.createElement('span');
+      meta.className = 'play-history-meta';
+      meta.textContent = 'R' + entry.round + '  T' + entry.turn;
+      const cardSpan = document.createElement('span');
+      cardSpan.className = 'play-history-card';
+      cardSpan.style.display = 'flex';
+      cardSpan.style.gap = '4px';
+      entry.cards.forEach(card => {
+        const cs = document.createElement('span');
+        const isRed = card.suit === 'h' || card.suit === 'd';
+        cs.style.color = isRed ? '#c0392b' : '#1a1a1a';
+        cs.textContent = cardDisplay(card.rank, card.suit);
+        cardSpan.appendChild(cs);
+      });
+      if (entry.isBluff) {
+        const tag = document.createElement('span');
+        tag.style.cssText = 'font-size:9px;background:#e67e22;color:#fff;padding:1px 4px;border-radius:3px;align-self:center';
+        tag.textContent = 'BLUFF';
+        cardSpan.appendChild(tag);
+      }
+      row.appendChild(meta);
+      row.appendChild(cardSpan);
+      popoutPlayedList.appendChild(row);
+    });
+  }
+
+  const bs = bluffStats[i];
+  const sm = playerSmartness[i] || 0;
+  popoutCycleStat.innerHTML =
+    'Each card takes <strong>' + numPlayers + ' rounds</strong> to come back.<br>' +
+    '<span style="font-size:11px;color:#888">Smartness: <strong>' + (sm * 100).toFixed(0) + '%</strong> · ' +
+    'Bluffs: <strong>' + bs.bluffAttempts + '</strong> · ' +
+    'Caught: <strong>' + bs.caughtBluffing + '</strong></span>';
+
+  const starts = firstCardEachRound[i] || [];
+  popoutStartStat.innerHTML = '';
+  if (starts.length === 0) {
+    popoutStartStat.innerHTML = '<span class="no-data">No rounds started yet</span>';
+  } else {
+    const first = starts[0];
+    let html = '<div style="margin-bottom:4px">First dealt: <strong>' + rankLabel(first.rank) + '</strong> in round ' + first.round + '</div>';
+    const aceStarts = starts.filter(s => s.rank === 1);
+    if (aceStarts.length === 0) {
+      html += '<div style="color:#bbb;font-size:12px">Has not started with A yet</div>';
+    } else {
+      html += '<div>Started with <strong>A</strong> in: ' + aceStarts.map(s => 'R' + s.round).join(', ') + '</div>';
+    }
+    popoutStartStat.innerHTML = html;
+  }
+}
+
+function openPopout(playerIndex, clickX, clickY) {
+  buildPopoutContent(playerIndex);
+  const arenaRect = document.getElementById('arena').getBoundingClientRect();
+  const pw = 280, ph = 420;
+  let left = clickX + 14;
+  let top = clickY - 20;
+  if (left + pw > arenaRect.width - 8) left = clickX - pw - 14;
+  if (top + ph > arenaRect.height - 8) top = arenaRect.height - ph - 8;
+  if (top < 8) top = 8;
+  popout.style.left = left + 'px';
+  popout.style.top = top + 'px';
+  openPopoutPlayer = playerIndex;
+  popoutOverlay.classList.add('visible');
+}
+
+function closePopout() {
+  popoutOverlay.classList.remove('visible');
+  openPopoutPlayer = -1;
+}
+
+function refreshPopout() {
+  if (openPopoutPlayer === -1) return;
+  buildPopoutContent(openPopoutPlayer);
+}
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const r = 30;
+  for (let i = 0; i < numPlayers; i++) {
+    if (!playerPositions[i]) continue;
+    const {x, y} = playerPositions[i];
+    if (Math.sqrt((mx - x) ** 2 + (my - y) ** 2) <= r + 8) {
+      openPopout(i, mx, my);
+      return;
+    }
+  }
+  closePopout();
+});
+
+document.getElementById('popout-close').addEventListener('click', closePopout);
+popoutOverlay.addEventListener('click', (e) => { if (e.target === popoutOverlay) closePopout(); });
+
+winReviewBtn.addEventListener('click', openReviewModal);
+reviewClose.addEventListener('click', () => reviewModal.classList.remove('visible'));
+
+winBtn.addEventListener('click', () => {
+  running = false;
+  clearInterval(timer);
+  timer = null;
+  initState(false);
+});
+
+btnStart.addEventListener('click', () => {
+  if (winScreen.classList.contains('visible')) {
+    running = false;
+    clearInterval(timer);
+    timer = null;
+    initState(false);
+    return;
+  }
+  if (running) return;
+  running = true;
+  if (isInstant()) {
+    timer = setInterval(step, 1);
+  } else {
+    timer = setInterval(step, getIntervalMs());
+  }
+});
+
+btnAutoLoop.addEventListener('click', () => {
+  autoLoop = !autoLoop;
+  if (autoLoop) {
+    btnAutoLoop.textContent = 'Stop Looping';
+    btnAutoLoop.classList.add('active');
+    if (!running) {
+      winScreen.classList.remove('visible');
+      initState(true);
+      running = true;
+      if (isInstant()) {
+        timer = setInterval(step, 1);
+      } else {
+        timer = setInterval(step, getIntervalMs());
+      }
+    }
+  } else {
+    btnAutoLoop.textContent = 'Auto Loop';
+    btnAutoLoop.classList.remove('active');
+  }
+});
+
+btnReset.addEventListener('click', () => {
+  if (!resetPending) {
+    if (running) {
+      running = false;
+      clearInterval(timer);
+      timer = null;
+      turnLabelEl.textContent = 'paused';
+    }
+    autoLoop = false;
+    btnAutoLoop.textContent = 'Auto Loop';
+    btnAutoLoop.classList.remove('active');
+    resetPending = true;
+    btnReset.textContent = 'Confirm Reset';
+    btnReset.classList.add('confirm-reset');
+  } else {
+    running = false;
+    clearInterval(timer);
+    timer = null;
+    resetPending = false;
+    btnReset.textContent = 'Reset';
+    btnReset.classList.remove('confirm-reset');
+    gameCount = 0;
+    winCounts = [];
+    totalRoundsAll = 0;
+    totalTurnsAll = 0;
+    lastWinnerIdx = -1;
+    aggregateStats = [];
+    const n = parseInt(playerSlider.value);
+    initSmartnessSettings(n);
+    playerSmartness = playerSmartnessSettings.slice(0, n);
+    winLogList.innerHTML = '<span class="no-data" style="font-size:12px;color:#bbb;font-style:italic;padding:4px 0;">No games yet</span>';
+    updateStats();
+    initState(false);
+  }
+});
+
+document.getElementById('btn-pause').addEventListener('click', () => {
+  if (!running) return;
+  running = false;
+  clearInterval(timer);
+  timer = null;
+  turnLabelEl.textContent = 'paused';
+  autoLoop = false;
+  btnAutoLoop.textContent = 'Auto Loop';
+  btnAutoLoop.classList.remove('active');
+  resetPending = false;
+  btnReset.textContent = 'Reset';
+  btnReset.classList.remove('confirm-reset');
+});
+
+document.getElementById('btn-stats').addEventListener('click', () => {
+  statsPanel.classList.toggle('visible');
+  if (statsPanel.classList.contains('visible')) updateStats();
+});
+
+document.getElementById('stats-close').addEventListener('click', () => {
+  statsPanel.classList.remove('visible');
+});
+
+playerSlider.addEventListener('input', () => {
+  if (running) return;
+  numPlayers = parseInt(playerSlider.value);
+  playerCountLabel.textContent = numPlayers;
+  winCounts = Array.from({length: numPlayers}, () => 0);
+  if (playerSmartnessSettings.length < numPlayers) {
+    while (playerSmartnessSettings.length < numPlayers) playerSmartnessSettings.push(Math.random());
+  }
+  initState(false);
+});
+
+speedSlider.addEventListener('input', () => {
+  const ms = getIntervalMs();
+  speedLabelEl.textContent = speedLabel(ms);
+  if (running) {
+    clearInterval(timer);
+    if (isInstant()) {
+      timer = setInterval(step, 1);
+    } else {
+      timer = setInterval(step, ms);
+    }
+  }
+});
+
+window.addEventListener('resize', resizeCanvas);
+
+playerCountLabel.textContent = playerSlider.value;
+speedLabelEl.textContent = speedLabel(getIntervalMs());
+winCounts = Array.from({length: parseInt(playerSlider.value)}, () => 0);
+
+const initialN = parseInt(playerSlider.value);
+initSmartnessSettings(initialN);
+
+requestAnimationFrame(() => {
+  resizeCanvas();
+  initState(false);
+});
+</script>
+</body>
+</html>
